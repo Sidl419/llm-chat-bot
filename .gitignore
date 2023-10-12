@@ -3,6 +3,11 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# Project specific files
+*.gguf
+.DS_Store
+tinkoff-terms
+
 # C extensions
 *.so
 
