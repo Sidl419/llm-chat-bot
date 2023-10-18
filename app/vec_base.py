@@ -1,21 +1,32 @@
 from langchain.document_loaders import DirectoryLoader
 from langchain.text_splitter import CharacterTextSplitter
-from langchain.embeddings.openai import OpenAIEmbeddings
+from langchain.embeddings.llamacpp import LlamaCppEmbeddings
 from langchain.vectorstores import Chroma
+from langchain.document_loaders.pdf import PDFMinerLoader
+from langchain.document_loaders.csv_loader import CSVLoader
+import os
+import time
 
-
-loader = DirectoryLoader('../', glob="**/*.md")
 text_splitter = CharacterTextSplitter(
     separator="\n\n",
     chunk_size=1000,
     chunk_overlap=200,
-    lenght_function=len,
     is_separator_regex=False,
+    length_function=len
 )
-chunks = text_splitter.split_text(loader.load())
+embeddings_model =  LlamaCppEmbeddings(model_path="../" + os.getenv("MODEL_FILE"),)
 
-embeddings_model = OpenAIEmbeddings(open_api_key="...")
-db = Chroma.from_documents(chunks, embeddings_model)
+csv_loader = DirectoryLoader('../tinkoff-terms', glob="**/*.csv", loader_cls=CSVLoader)
+csv_chunks = text_splitter.split_documents(csv_loader.load())
 
-query = "What did the president say about Ketanji Brown Jackson"
-docs = db.simularity_search(query)
+pdf_loader = DirectoryLoader('../tinkoff-terms', glob="**/*.pdf", loader_cls=PDFMinerLoader)
+pdf_chunks = text_splitter.split_documents(pdf_loader.load())
+
+start = time.time()
+db = Chroma.from_documents(pdf_chunks + csv_chunks, embeddings_model, persist_directory="./chroma_db")
+end = time.time()
+print(f"time for db creation: {end - start // 60} minutes")
+
+query = "хочу кредит"
+#docs = db.similarity_search(query)
+print(db.similarity_search(query))

@@ -37,14 +37,17 @@ prompt = PromptTemplate(template="""
 
 
 
-@app.post("/message")
-def message (user_id: str, message: str):  
-    memory = ConversationBufferMemory(chat_memory=RedisChatMessageHistory(url=REDIS_URL, session_id=user_id))
-    conversation = LLMChain(
-        llm=llm,
-        prompt=prompt,
-        verbose=True,
-        memory=memory
-    )
-    ai_message = conversation({"question": message})
-    return {"message": ai_message["text"]}
+#@app.post("/message")
+#def message (user_id: str, message: str): 
+user_id = 1 
+message = "Hello"
+memory = ConversationBufferMemory(chat_memory=RedisChatMessageHistory(url=REDIS_URL, session_id=user_id))
+conversation = LLMChain(
+    llm=llm,
+    prompt=prompt,
+    verbose=True,
+    memory=memory
+)
+ai_message = conversation({"question": message})
+print(ai_message["text"])
+#return {"message": ai_message["text"]}
