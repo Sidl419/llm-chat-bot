@@ -6,7 +6,6 @@ __pycache__/
 # Project specific files
 *.gguf
 .DS_Store
-tinkoff-terms
 *.ipynb
 
 # C extensions

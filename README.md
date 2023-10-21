@@ -1,6 +1,6 @@
 # llm-chat-bot
 
-Веб-сервис, способный отвечать на вопросы пользователей на основе базы знаний. Для запуска сервиса необходимо скачать в корневую папку файл [модели Llama](https://huggingface.co/TheBloke/Llama-2-7b-Chat-GGUF/blob/main/llama-2-7b-chat.Q4_K_M.gguf) и [документы](https://drive.google.com/drive/folders/1RaGIjeWaC8ZNtlfYdHEj-6Vy7L4cHOEE), по которым ведётся поиск (в нашем случае условия Тинькофф Банка).
+Веб-сервис, способный отвечать на вопросы пользователей на основе базы знаний. Для запуска сервиса необходимо скачать в корневую папку файл [модели Llama](https://huggingface.co/TheBloke/Llama-2-7b-Chat-GGUF/blob/main/llama-2-7b-chat.Q4_K_M.gguf) и [документы](https://drive.google.com/drive/folders/1RaGIjeWaC8ZNtlfYdHEj-6Vy7L4cHOEE), по которым ведётся поиск (в нашем случае условия Тинькофф Банка), они должны лежать в папке `/tinkoff-terms`.
 
 Ключевые моменты решения:
 
