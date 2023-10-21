@@ -1,53 +1,58 @@
 from fastapi import FastAPI 
-import redis
 import os
+import time
 from langchain.llms import LlamaCpp
 from langchain.chains import LLMChain
-from langchain.prompts import PromptTemplate
+from langchain.prompts import ChatPromptTemplate, SystemMessagePromptTemplate, MessagesPlaceholder, HumanMessagePromptTemplate
+from langchain.schema import HumanMessage
 from langchain.callbacks.manager import CallbackManager
 from langchain.memory import ConversationBufferMemory, RedisChatMessageHistory
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 
-
-REDIS_URL = "redis://localhost:6379/0"
+from app.vec_base import VecBase
 
 
 app = FastAPI()
-redis_client = redis.Redis.from_url(REDIS_URL) #redis.Redis(host='localhost', port=6379, decode_responses=True)
-
-
+db = VecBase("sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2", chunk_size=300, chunk_overlap=50)
 callback_manager = CallbackManager([StreamingStdOutCallbackHandler()])
 llm = LlamaCpp(
-    model_path="../" + os.getenv("MODEL_FILE"),
-    max_tokens=5000,
+    model_path=os.getenv("MODEL_FILE"),
+    use_mlock=True,
+    n_ctx=2048,
+    last_n_tokens_size=2048,
     callback_manager=callback_manager, 
     verbose=True, # Verbose is required to pass to the callback manager
+    temperature=0,
+    n_threads=6,
+    model_kwargs={"keep": -1}
 )
 
-prompt = PromptTemplate(template="""
-                        You are a helpful, respectful and honest assistant. Always answer as helpfully
-                        as possible, while being safe.  Your answers should not include any harmful,
-                        unethical, racist, sexist, toxic, dangerous, or illegal content. Please ensure
-                        that your responses are socially unbiased and positive in nature. If a
-                        question does not make any sense, or is not factually coherent, explain why
-                        instead of answering something not correct. If you don't know the answer to a
-                        question, please don't share false information.
-                        
-                        Answer to this question: {question}""", input_variables=["question"])
+prompt = ChatPromptTemplate.from_messages([SystemMessagePromptTemplate.from_template(
+"""You are a member of our support team at the Russian Tinkoff Bank, and your job 
+is to provide quality service to our customers. Please answer their questions in an 
+informative and respectful way, avoiding any harmful or unethical content, and providing 
+socially biased and helpful information. If you cannot answer a question, please clearly 
+explain the reason for your inability. Try to be brief and answer in russian."""
+), 
+MessagesPlaceholder(variable_name="chat_history"), 
+SystemMessagePromptTemplate.from_template("Наша поисковая система выдала следующую информацию по текущей теме: {terms}"),
+HumanMessagePromptTemplate.from_template("Представься сотрудником банка. Ответь на этот вопрос на русском языке: {question}?")])
 
-
-
-#@app.post("/message")
-#def message (user_id: str, message: str): 
-user_id = 1 
-message = "Hello"
-memory = ConversationBufferMemory(chat_memory=RedisChatMessageHistory(url=REDIS_URL, session_id=user_id))
-conversation = LLMChain(
-    llm=llm,
-    prompt=prompt,
-    verbose=True,
-    memory=memory
-)
-ai_message = conversation({"question": message})
-print(ai_message["text"])
-#return {"message": ai_message["text"]}
+@app.post("/message")
+def message (user_id: str, message: str): 
+    add_info = db.similarity_search(message, k=3)
+    memory = ConversationBufferMemory(memory_key="chat_history", 
+                                    input_key="question", 
+                                    chat_memory=RedisChatMessageHistory(url="redis://127.0.0.1:6379/0", session_id=user_id, ttl=2), 
+                                    return_messages=True)
+    conversation = LLMChain(
+        llm=llm,
+        prompt=prompt,
+        verbose=True,
+        memory=memory
+    )
+    start = time.time()
+    ai_message = conversation({"question": message, "terms": add_info})
+    duration = time.time() - start
+    print(f"Inference time {round(duration // 60)} minutes {round(duration % 60)} seconds")
+    return {"message": ai_message["text"]}

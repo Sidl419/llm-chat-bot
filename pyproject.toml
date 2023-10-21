@@ -7,7 +7,7 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.10"
-llama-cpp-python = "^0.2.11"
+llama-cpp-python = "0.2.11"
 langchain = "^0.0.311"
 fastapi = "^0.103.2"
 redis = "^5.0.1"
@@ -16,10 +16,18 @@ pydantic = "^2.4.2"
 chromadb = "^0.4.14"
 pypdf = "^3.16.4"
 pdfminer-six = "^20221105"
+sentence-transformers = "^2.2.2"
+torch = {version = "^2.0.1+cu118", source = "pytorch-cpu-src"}
 
 
 [tool.poetry.group.dev.dependencies]
 ipykernel = "^6.25.2"
+
+
+[[tool.poetry.source]]
+name = "pytorch-cpu-src"
+url = "https://download.pytorch.org/whl/cpu"
+priority = "explicit"
 
 [build-system]
 requires = ["poetry-core"]

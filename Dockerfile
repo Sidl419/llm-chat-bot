@@ -7,7 +7,7 @@ ENV POETRY_HOME="/opt/poetry" \
     POETRY_VERSION=1.6.1
 
 ENV PATH="$PATH:$POETRY_HOME/bin"\
-    MODEL_FILE="llama-2-7b-chat.Q2_K.gguf"
+    MODEL_FILE="llama-2-7b-chat.Q4_K_M.gguf"
 
 RUN pip install -U setuptools &&\
     # install redis 
@@ -23,8 +23,7 @@ COPY pyproject.toml poetry.lock ./
 RUN poetry install --no-root && rm -rf "${HOME}/.cache/pypoetry"
 
 COPY ./app ./app
+COPY ./tinkoff-terms ./tinkoff-terms
 COPY ./$MODEL_FILE ./$MODEL_FILE
 
-#WORKDIR /src
-
-CMD ["poetry", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080"]
+CMD redis-server --daemonize yes && poetry run uvicorn app.main:app --host 0.0.0.0 --port 8080
