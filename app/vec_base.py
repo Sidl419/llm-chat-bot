@@ -15,18 +15,18 @@ class VecBase:
             chunk_size=chunk_size,
             chunk_overlap=chunk_overlap,
             is_separator_regex=False,
-            length_function=len
-        )
-        
-        embeddings_model =  HuggingFaceEmbeddings(
-            model_name=embedding_model_name, 
-            model_kwargs={'device': 'cpu'}, 
-            encode_kwargs={'normalize_embeddings': False}
+            length_function=len,
         )
 
-        csv_loader = DirectoryLoader('tinkoff-terms', glob="**/*.csv", loader_cls=CSVLoader)
+        embeddings_model = HuggingFaceEmbeddings(
+            model_name=embedding_model_name,
+            model_kwargs={"device": "cpu"},
+            encode_kwargs={"normalize_embeddings": False},
+        )
+
+        csv_loader = DirectoryLoader("tinkoff-terms", glob="**/*.csv", loader_cls=CSVLoader)
         csv_chunks = text_splitter.split_documents(csv_loader.load())
-        pdf_loader = DirectoryLoader('tinkoff-terms', glob="**/*.pdf", loader_cls=PDFMinerLoader)
+        pdf_loader = DirectoryLoader("tinkoff-terms", glob="**/*.pdf", loader_cls=PDFMinerLoader)
         pdf_chunks = text_splitter.split_documents(pdf_loader.load())
 
         start = time.time()
@@ -37,5 +37,5 @@ class VecBase:
         res = []
         for doc in self.db.similarity_search(query, k):
             res.append(doc.page_content)
-        
-        return ('\n'.join(res))
+
+        return "\n".join(res)

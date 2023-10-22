@@ -22,7 +22,30 @@ torch = {version = "^2.0.1+cu118", source = "pytorch-cpu-src"}
 
 [tool.poetry.group.dev.dependencies]
 ipykernel = "^6.25.2"
+black = "^23.10.0"
 
+[tool.black]
+line-length = 120
+target-version = ['py310']
+include = '\.pyi?$'
+exclude = '''
+(
+  /(
+      \.eggs         # exclude a few common directories in the
+    | \.git          # root of the project
+    | \.hg
+    | \.mypy_cache
+    | \.tox
+    | \.venv
+    | _build
+    | buck-out
+    | build
+    | dist
+  )/
+  | foo.py           # also separately exclude a file named foo.py in
+                     # the root of the project
+)
+'''
 
 [[tool.poetry.source]]
 name = "pytorch-cpu-src"
